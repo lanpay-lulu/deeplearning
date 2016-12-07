@@ -64,13 +64,14 @@ class Network(object):
                 for k in xrange(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
+                #exit()
             if test_data:
                 print "Epoch {0}: {1} / {2}".format(
                     j, self.evaluate(test_data), n_test)
             else:
-                print "Epoch {0} complete".format(j)
+                print "Epoch {0} complete".format(j)    
             t2 = time.time() - t1
-            print 'time', t2
+            print 'time =', t2
 
     def update_mini_batch(self, mini_batch, eta):
         """Update the network's weights and biases by applying
@@ -80,14 +81,77 @@ class Network(object):
         # wsh note: nabla_w has the same structure as self.weights, representing gradient for each node. So does nabla_b.
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
-        for x, y in mini_batch:
-            delta_nabla_b, delta_nabla_w = self.backprop(x, y)
-            nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
-            nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+        
+        nabla_b1 = [np.zeros(b.shape) for b in self.biases]
+        nabla_w1 = [np.zeros(w.shape) for w in self.weights]
+        
+        delta_nabla_b, delta_nabla_w = self.full_backprop(mini_batch)
+        #nabla_b = nabla_b + delta_nabla_b
+        #nabla_w = nabla_w + delta_nabla_w
+        nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
+        nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+        #for x, y in mini_batch:
+        #    delta_nabla_b1, delta_nabla_w1 = self.backprop(x, y)
+        #    nabla_b1 = [nb+dnb for nb, dnb in zip(nabla_b1, delta_nabla_b1)]
+        #    nabla_w1 = [nw+dnw for nw, dnw in zip(nabla_w1, delta_nabla_w1)]
+        #print '11', nabla_w[0], nabla_b[-1].shape
+        #print '22', nabla_w1[0], nabla_b1[-1].shape
+        #print 'eq', np.sum(nabla_b[-1])
+        #print 'eq', np.sum(nabla_b1[-1])
+        
         self.weights = [w-(eta/len(mini_batch))*nw
                         for w, nw in zip(self.weights, nabla_w)]
         self.biases = [b-(eta/len(mini_batch))*nb
                        for b, nb in zip(self.biases, nabla_b)]
+
+    def full_backprop(self, mini_batch):
+        """mx and my are vectors.
+        Return a tuple of (nabla_a, nabla_w).
+        """
+        n = len(mini_batch)
+        xsize = mini_batch[0][0].shape[0]
+        ysize = mini_batch[0][1].shape[0]
+        mx = np.zeros((xsize,n))
+        my = np.zeros((ysize,n))
+        i = 0
+        for x, y in mini_batch:
+            mx[:,i] = x[:,0]
+            my[:,i] = y[:,0]
+            i += 1
+        #print(np.sum(mx>0))
+        nabla_b = [np.zeros(b.shape) for b in self.biases]
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
+        #feed forward
+        activation = mx
+        #print 'mx', mx.shape, np.sum(mx>0)
+        activations = [mx]
+        zs = [] # store all z vectors
+        for b,w in zip(self.biases, self.weights):
+            """b, w are 2 list; If this layer has 30 neurons, and next layer has 10,
+            then w is in shape(10, 30), b is in shape(10, 1), activation should be (30, 1)
+            for single sample, should be (30, n) for n samples, and we should expand b to (10, n).
+            """
+            z = np.dot(w, activation) + b
+            #print(z.shape)
+            zs.append(z)
+            activation = sigmoid(z)
+            #print 'mx-a', np.sum(activation>0.5), activation.shape
+            activations.append(activation)
+        # backward pass
+        delta = self.cost_derivative(activations[-1], my) * sigmoid_prime(zs[-1])
+        #print 'mx-delta', np.sum(delta), delta.shape
+        #print 'mx-b11', np.sum(nabla_b[-1]), nabla_b[-1].shape
+        nabla_b[-1][:,0] = np.sum(delta, axis=1)
+        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
+        #print 'mx-b1', np.sum(nabla_b[-1]), nabla_b[-1].shape
+        for l in xrange(2, self.num_layers):
+            z = zs[-l]
+            sp = sigmoid_prime(z)
+            delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
+            nabla_b[-l][:,0] = np.sum(delta, axis=1)
+            nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
+        #print 'mx-ww', np.sum(nabla_w[0]), nabla_w[0].shape
+        return (nabla_b, nabla_w)
 
     def backprop(self, x, y):
         """Return a tuple ``(nabla_b, nabla_w)`` representing the
@@ -98,18 +162,22 @@ class Network(object):
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         # feedforward
         activation = x
+        #print 'xx', x.shape, np.sum(x>0)
         activations = [x] # list to store all the activations, layer by layer
         zs = [] # list to store all the z vectors, layer by layer
         for b, w in zip(self.biases, self.weights):
             z = np.dot(w, activation)+b
             zs.append(z)
             activation = sigmoid(z)
+            #print 'xx-a', np.sum(activation>0.5), activation.shape
             activations.append(activation)
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * \
             sigmoid_prime(zs[-1])
+        #print 'xx-delta', np.sum(delta), delta.shape
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
+        #print 'xx-b1', np.sum(nabla_b[-1]), nabla_b[-1].shape
         # Note that the variable l in the loop below is used a little
         # differently to the notation in Chapter 2 of the book.  Here,
         # l = 1 means the last layer of neurons, l = 2 is the
@@ -122,6 +190,7 @@ class Network(object):
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
+        #print 'xx-ww', np.sum(nabla_w[0]), nabla_w[0].shape
         return (nabla_b, nabla_w)
 
     def evaluate(self, test_data):
