@@ -1,15 +1,18 @@
 """
-network2.py
+mynetwork2.py
 ~~~~~~~~~~
 
-A module to implement the stochastic gradient descent learning
-algorithm for a feedforward neural network.  Gradients are calculated
-using backpropagation.  Note that I have focused on making the code
-simple, easily readable, and easily modifiable.  It is not optimized,
-and omits many desirable features.
-Modified by wsh and implemented batch calculatation.
+"""
 
 """
+Lanpay:
+
+--- Add batch calculatation for backprop.
+--- Add CrossEntropyCost.
+--- Add better weight param initialization.
+
+"""
+
 
 #### Libraries
 # Standard library

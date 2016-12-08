@@ -13,7 +13,9 @@ and omits many desirable features.
 -- Modified by wsh and add activation function class
 -- note: should alse modify delta function in Cost class
 
--- Add softmax. Apply in the activation of output layer.
+-- Add Tanh activation function.
+
+-- Add softmax. Apply in the activation of output layer by adding output func. And also modify the full_backprop for the output layer!
 So I implemente it as a cost function for simplity.
 """
 

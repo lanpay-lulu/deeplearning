@@ -9,6 +9,14 @@ simple, easily readable, and easily modifiable.  It is not optimized,
 and omits many desirable features.
 """
 
+"""
+Lanpay:
+
+--- Add batch calculatation for backprop, which is full_backprop
+
+"""
+
+
 #### Libraries
 # Standard library
 import random

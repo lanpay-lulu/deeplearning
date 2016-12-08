@@ -3,6 +3,8 @@ import mnist_loader
 #import mynetwork2
 import mynetwork23 as network2
 
+# add softmax to the output layer
+
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 net = network2.Network([784, 30, 10], 
         #cost=network2.CrossEntropyCost,

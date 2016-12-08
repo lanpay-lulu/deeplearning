@@ -8,11 +8,19 @@ using backpropagation.  Note that I have focused on making the code
 simple, easily readable, and easily modifiable.  It is not optimized,
 and omits many desirable features.
 
--- Modified by wsh and implemented batch calculatation.
-
--- Modified by wsh and add activation function class
--- note: should alse modify delta function in Cost class
 """
+
+"""
+Lanpay:
+
+--- Add activation function class for different activation function.
+--- note: should alse modify delta function in Cost class.
+
+--- Add Tanh function as activation function. 
+--- note: Tanh should be with QuadraticCost if not using softmax. Cross entropy need input range (0,1) 
+
+"""
+
 
 #### Libraries
 # Standard library
