@@ -1,27 +1,9 @@
 """
-networkA1.py
-~~~~~~~~~~
-
 A module to implement the stochastic gradient descent learning
 algorithm for a feedforward neural network.  Gradients are calculated
 using backpropagation.  Note that I have focused on making the code
 simple, easily readable, and easily modifiable.  It is not optimized,
 and omits many desirable features.
-
--- 23 content
--- Modified by wsh and implemented batch calculatation.
-
--- Modified by wsh and add activation function class
--- note: should alse modify delta function in Cost class
-
--- Add Tanh activation function.
-
--- Add softmax. Apply in the activation of output layer by adding output func. And also modify the full_backprop for the output layer!
-So I implemente it as a cost function for simplity.
-
--- 24 content
-
-
 """
 
 #### Libraries
@@ -134,10 +116,6 @@ class Network(object):
             t2 = time.time() - t1
             print 'time =', t2
 
-            #print "max w=", np.max(self.weights[-1])
-            #print "max b=", np.max(self.biases[-1])
-
-            print
         return evaluation_cost, evaluation_accuracy, training_cost, training_accuracy 
 
     def update_mini_batch(self, mini_batch, eta, lmbda, n):
@@ -154,8 +132,6 @@ class Network(object):
         
         delta_nabla_b, delta_nabla_w = self.full_backprop(mini_batch, eta, lmbda, n)
 
-        #print '[debug] delta_nabla_b max', delta_nabla_b.max()
-        #print '[debug] delta_nabla_w max', delta_nabla_w.max()
 
     def full_backprop(self, mini_batch, eta, lmbda, total_n):
         """mx and my are vectors.
@@ -180,8 +156,6 @@ class Network(object):
         
         # feed forward
         a = self.feedforward(mx)
-        #print 'A1', a.max()
-        #time.sleep(1)
 
         # backward pass
         nabla_b, nabla_w, delta = self.output_layer.backward(my)  
@@ -192,8 +166,6 @@ class Network(object):
             nabla_b, nabla_w, delta = lay.backward(delta)
             lay.update(nabla_b, nabla_w, eta, lmbda, n, total_n)
             
-        #print 'nabla_b shape', nabla_b.shape, 'val', nabla_b[:3, 0]
-        #print 'nabla_w shape', nabla_w.shape, 'val', nabla_w[:3, 0]
         return (nabla_b, nabla_w)
 
     def accuracy(self, data, convert=False):
@@ -257,12 +229,5 @@ def test():
     x = np.array([[1,2,3], [2,3,4]]).transpose()
     a1 = net.feedforward(x)
    
-    print ''
-    print 'result'
-    print a1
-
-    pass
-
-
 if __name__ == '__main__':
     test()
