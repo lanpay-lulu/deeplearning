@@ -1,5 +1,5 @@
 """
-network23.py
+network24.py
 ~~~~~~~~~~
 
 A module to implement the stochastic gradient descent learning
@@ -28,6 +28,9 @@ import numpy as np
 
 import time
 
+
+random.seed(10)
+np.random.seed(10)
 
 class SigmoidActivation(object):
     @staticmethod
@@ -214,18 +217,14 @@ class Network(object):
         nabla_w1 = [np.zeros(w.shape) for w in self.weights]
         
         delta_nabla_b, delta_nabla_w = self.full_backprop(mini_batch)
+
+        #print '[debug] delta_nabla_b max', delta_nabla_b[0].max()
+        #print '[debug] delta_nabla_w max', delta_nabla_w[0].max()
+
         #nabla_b = nabla_b + delta_nabla_b
         #nabla_w = nabla_w + delta_nabla_w
         nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
         nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
-        #for x, y in mini_batch:
-        #    delta_nabla_b1, delta_nabla_w1 = self.backprop(x, y)
-        #    nabla_b1 = [nb+dnb for nb, dnb in zip(nabla_b1, delta_nabla_b1)]
-        #    nabla_w1 = [nw+dnw for nw, dnw in zip(nabla_w1, delta_nabla_w1)]
-        #print '11', np.sum(nabla_w[0]), nabla_w[-1].shape
-        #print '22', np.sum(nabla_w1[0]), nabla_w1[-1].shape
-        #print 'eq', np.sum(nabla_b[-1])
-        #print 'eq', np.sum(nabla_b1[-1])
         #exit() 
         self.weights = [(1-eta*lmbda/n)*w-(eta/len(mini_batch))*nw
                         for w, nw in zip(self.weights, nabla_w)]
@@ -274,6 +273,9 @@ class Network(object):
         activation = self.output(z)
         activations.append(activation)
 
+        #print '24', activation.max()
+        #time.sleep(1)
+
         # backward pass
         # output layer
         #delta = self.cost_derivative(activations[-1], my) * sigmoid_prime(zs[-1])
@@ -285,8 +287,8 @@ class Network(object):
         #print 'mx-b11', np.sum(nabla_b[-1]), nabla_b[-1].shape
         nabla_b[-1][:,0] = np.sum(delta, axis=1)
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
-        #print 'mx-delta', np.sum(delta, axis=1).shape, delta.shape
-        #print 'mx-b1', np.sum(nabla_b[-1]), nabla_b[-1].shape
+        
+
         #exit()
         for l in xrange(2, self.num_layers):
             z = zs[-l]
@@ -296,6 +298,8 @@ class Network(object):
             nabla_b[-l][:,0] = np.sum(delta, axis=1)
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
         #print 'mx-ww', np.sum(nabla_w[0]), nabla_w[0].shape
+        #print 'nabla_b shape',nabla_b[0].shape, 'val', nabla_b[0][:3,0]
+        #print 'nabla_w shape',nabla_w[0].shape, 'val', nabla_w[0][:3,0]
         return (nabla_b, nabla_w)
 
     def accuracy(self, data, convert=False):

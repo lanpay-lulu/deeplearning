@@ -1,5 +1,5 @@
 """
-network23.py
+networkA1.py
 ~~~~~~~~~~
 
 A module to implement the stochastic gradient descent learning
@@ -8,6 +8,7 @@ using backpropagation.  Note that I have focused on making the code
 simple, easily readable, and easily modifiable.  It is not optimized,
 and omits many desirable features.
 
+-- 23 content
 -- Modified by wsh and implemented batch calculatation.
 
 -- Modified by wsh and add activation function class
@@ -17,87 +18,26 @@ and omits many desirable features.
 
 -- Add softmax. Apply in the activation of output layer by adding output func. And also modify the full_backprop for the output layer!
 So I implemente it as a cost function for simplity.
+
+-- 24 content
+
+
 """
 
 #### Libraries
 # Standard library
 import random
-
 # Third-party libraries
 import numpy as np
-
 import time
 
-
-class SigmoidActivation(object):
-    @staticmethod
-    def fn(z):
-        """The sigmoid function."""
-        return 1.0/(1.0+np.exp(-z))
-
-    @staticmethod
-    def fn_prime(z):
-        """Derivative of the sigmoid function."""
-        fn = SigmoidActivation.fn
-        return fn(z)*(1-fn(z))
-
-class TanhActivation(object):
-    @staticmethod
-    def fn(z):
-        return np.tanh(z)
-
-    @staticmethod
-    def fn_prime(z):
-        fn = TanhActivation.fn
-        #return 1-fn(z)**2
-        return 1/(np.cosh(z))**2
+import layer
+from activation import CrossEntropyCost, QuadraticCost, SoftmaxCost
+from activation import TanhActivation, SigmoidActivation
 
 
-class QuadraticCost(object):
-    @staticmethod
-    def fn(a, y):
-        return 0.5*np.linalg.norm(a-y)**2
-
-    @staticmethod
-    def delta(z, a, y):
-        return (a-y)*sigmoid_prime(z)
-
-    @staticmethod
-    def delta1(a, y):
-        return (a-y)
-
-
-class SoftmaxCost(object):
-    @staticmethod
-    def fn(a, y):
-        p = np.sum(a[y>0.5])
-        if p < 0.000001:
-            p = 0.000001
-        return -np.log(p)
-    
-    @staticmethod
-    def delta1(a, y):
-        e = np.exp(a)
-        s = np.sum(e, axis=0)
-        #z = a * (y>0)
-        #print "a.shape=", a.shape
-        #print "s.shape=", s.shape, "s=", s
-        #print "z.shape=", z.shape
-        #print "y.shape=", y.shape
-        return e/s - y
-
-class CrossEntropyCost(object):
-    @staticmethod
-    def fn(a, y):
-        return -np.sum(np.nan_to_num(y*np.log(a)+(1-y)*np.log(1-a)))
-    
-    @staticmethod
-    def delta(z, a, y):
-        return (a-y)
-
-    @staticmethod
-    def delta1(a, y):
-        return -(y/a - (1-y)/(1-a))
+random.seed(10)
+np.random.seed(10)
 
 class Network(object):
 
@@ -118,6 +58,13 @@ class Network(object):
         self.cost = cost
         self.activ_fn = act
         # line zip is to generate a full connected network weights
+        
+        self.layers = [layer.Layer(w, b, act) for w, b in zip(self.weights[:-1], self.biases[:-1])]
+        
+        ' output can be configured by output config string '
+        #self.output_layer = layer.OutputLayer(self.weights[-1], self.biases[-1], TanhActivation, SoftmaxCost)
+        self.output_layer = layer.OutputLayer(self.weights[-1], self.biases[-1], None, SoftmaxCost)
+        
 
     def large_weight_initializer(self):
         self.biases = [np.random.randn(y, 1) for y in self.sizes[1:]]
@@ -130,19 +77,11 @@ class Network(object):
         self.weights = [np.random.randn(y, x) / np.sqrt(x) / 2
                         for x, y in zip(self.sizes[:-1], self.sizes[1:])] 
 
-    def output(self, z):
-        """Return the softmax output of the output layer"""
-        a = np.exp(z)
-        a = a/np.sum(a, axis=0)
-        return a 
-
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
-        for b, w in zip(self.biases[:-1], self.weights[:-1]):
-            a = self.activ_fn.fn(np.dot(w, a)+b)
-            #a = sigmoid(np.dot(w, a)+b)
-        z = np.dot(self.weights[-1], a) + self.biases[-1]
-        a = self.output(z)
+        for lay in self.layers:
+            a = lay.forward(a)
+        a = self.output_layer.forward(a)
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
@@ -213,26 +152,12 @@ class Network(object):
         nabla_b1 = [np.zeros(b.shape) for b in self.biases]
         nabla_w1 = [np.zeros(w.shape) for w in self.weights]
         
-        delta_nabla_b, delta_nabla_w = self.full_backprop(mini_batch)
-        #nabla_b = nabla_b + delta_nabla_b
-        #nabla_w = nabla_w + delta_nabla_w
-        nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
-        nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
-        #for x, y in mini_batch:
-        #    delta_nabla_b1, delta_nabla_w1 = self.backprop(x, y)
-        #    nabla_b1 = [nb+dnb for nb, dnb in zip(nabla_b1, delta_nabla_b1)]
-        #    nabla_w1 = [nw+dnw for nw, dnw in zip(nabla_w1, delta_nabla_w1)]
-        #print '11', np.sum(nabla_w[0]), nabla_w[-1].shape
-        #print '22', np.sum(nabla_w1[0]), nabla_w1[-1].shape
-        #print 'eq', np.sum(nabla_b[-1])
-        #print 'eq', np.sum(nabla_b1[-1])
-        #exit() 
-        self.weights = [(1-eta*lmbda/n)*w-(eta/len(mini_batch))*nw
-                        for w, nw in zip(self.weights, nabla_w)]
-        self.biases = [b-(eta/len(mini_batch))*nb
-                       for b, nb in zip(self.biases, nabla_b)]
+        delta_nabla_b, delta_nabla_w = self.full_backprop(mini_batch, eta, lmbda, n)
 
-    def full_backprop(self, mini_batch):
+        #print '[debug] delta_nabla_b max', delta_nabla_b.max()
+        #print '[debug] delta_nabla_w max', delta_nabla_w.max()
+
+    def full_backprop(self, mini_batch, eta, lmbda, total_n):
         """mx and my are vectors.
         Return a tuple of (nabla_a, nabla_w).
         """
@@ -252,50 +177,23 @@ class Network(object):
         #print(np.sum(mx>0))
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
-        #feed forward
-        activation = mx
-        #print 'mx', mx.shape, np.sum(mx>0)
-        activations = [mx]
-        zs = [] # store all z vectors
-        for b,w in zip(self.biases[:-1], self.weights[:-1]):
-            """b, w are 2 list; If this layer has 30 neurons, and next layer has 10,
-            then w is in shape(10, 30), b is in shape(10, 1), activation should be (30, 1)
-            for single sample, should be (30, n) for n samples, and we should expand b to (10, n).
-            """
-            z = np.dot(w, activation) + b
-            #print(z.shape)
-            zs.append(z)
-            #activation = sigmoid(z)
-            activation = self.activ_fn.fn(z)
-            #print 'mx-a', np.sum(activation>0.5), activation.shape
-            activations.append(activation)
-        z = np.dot(self.weights[-1], activation) + self.biases[-1]
-        zs.append(z)
-        activation = self.output(z)
-        activations.append(activation)
+        
+        # feed forward
+        a = self.feedforward(mx)
+        #print 'A1', a.max()
+        #time.sleep(1)
 
         # backward pass
-        # output layer
-        #delta = self.cost_derivative(activations[-1], my) * sigmoid_prime(zs[-1])
-        #delta = (self.cost).delta(zs[-1], activations[-1], my)
-        delta = (self.cost).delta1(z, my)
-        #delta = 
+        nabla_b, nabla_w, delta = self.output_layer.backward(my)  
+        self.output_layer.update(nabla_b, nabla_w, eta, lmbda, n, total_n)
 
-        #print 'mx-delta', np.sum(delta), delta.shape
-        #print 'mx-b11', np.sum(nabla_b[-1]), nabla_b[-1].shape
-        nabla_b[-1][:,0] = np.sum(delta, axis=1)
-        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
-        #print 'mx-delta', np.sum(delta, axis=1).shape, delta.shape
-        #print 'mx-b1', np.sum(nabla_b[-1]), nabla_b[-1].shape
-        #exit()
-        for l in xrange(2, self.num_layers):
-            z = zs[-l]
-            #sp = sigmoid_prime(z)
-            sp = self.activ_fn.fn_prime(z)
-            delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
-            nabla_b[-l][:,0] = np.sum(delta, axis=1)
-            nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
-        #print 'mx-ww', np.sum(nabla_w[0]), nabla_w[0].shape
+        for l in xrange(1, len(self.layers)+1):
+            lay = self.layers[-l]
+            nabla_b, nabla_w, delta = lay.backward(delta)
+            lay.update(nabla_b, nabla_w, eta, lmbda, n, total_n)
+            
+        #print 'nabla_b shape', nabla_b.shape, 'val', nabla_b[:3, 0]
+        #print 'nabla_w shape', nabla_w.shape, 'val', nabla_w[:3, 0]
         return (nabla_b, nabla_w)
 
     def accuracy(self, data, convert=False):
@@ -313,7 +211,7 @@ class Network(object):
             a = self.feedforward(x)
             if convert:
                 y = vectorized_result(y)
-            cost += self.cost.fn(a, y)
+            cost += self.cost.cost(a, y)
         cost /= len(data)
         cost += 0.5*(lmbda/len(data))*sum(
                 np.linalg.norm(w)**2 for w in self.weights)
@@ -347,3 +245,24 @@ def sigmoid(z):
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
+
+
+def test():
+    print 'test'
+    net = Network([3, 30, 10], 
+            cost=SoftmaxCost, 
+            act=TanhActivation
+            #act=SigmoidActivation
+            )
+    x = np.array([[1,2,3], [2,3,4]]).transpose()
+    a1 = net.feedforward(x)
+   
+    print ''
+    print 'result'
+    print a1
+
+    pass
+
+
+if __name__ == '__main__':
+    test()

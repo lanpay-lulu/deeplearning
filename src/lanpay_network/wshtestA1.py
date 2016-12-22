@@ -1,7 +1,8 @@
 import mnist_loader
 
 #import mynetwork2
-import mynetwork23 as network2
+import mynetworkA1 as network2
+import activation
 
 # add softmax to the output layer
 
@@ -9,9 +10,11 @@ training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 net = network2.Network([784, 30, 10], 
         #cost=network2.CrossEntropyCost,
         #cost=network2.QuadraticCost)
-        cost=network2.SoftmaxCost,
-        act=network2.TanhActivation)
-net.large_weight_initializer()
+        cost=activation.SoftmaxCost,
+        act=activation.TanhActivation)
+
+#net.large_weight_initializer()
+
 eta = 0.1  # learning rate
 batch_size = 11
 epochs = 10
