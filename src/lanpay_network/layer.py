@@ -47,10 +47,13 @@ Becauese (cost + normal) layer has a simpler delta form, we combine them togethe
 '''
 class OutputLayer(Layer):
     def __init__(self, w, b, act_fn, cost_fn): # if act_fn is contained in cost_fn, then act_fn should be None
-        self.combined = (act_fn == None)
-        a_fn = act_fn if act_fn!=None else cost_fn
+        self.combined = cost_fn.combined()
+        a_fn = act_fn if not self.combined else cost_fn
         Layer.__init__(self, w, b, a_fn)
         self.cost_fn = cost_fn
+        print '[info] init OutputLayer...'
+        print 'act_fn = ', act_fn
+        print 'cost_fn = ', cost_fn
         #self.act_fn = act_fn
 
     # forward is the same, so just call the super method
@@ -61,7 +64,7 @@ class OutputLayer(Layer):
             delta = (self.cost_fn).delta_z(self.z, y)  # dL / dz
         else:
             delta_a = (self.cost_fn).delta(self.a, y)
-            delta = (self.act_fn).prime(z) * delta_a 
+            delta = (self.act_fn).prime(self.z) * delta_a 
 
         nabla_b = np.zeros(self.b.shape)
         #nabla_w = np.zeros(w.shape)

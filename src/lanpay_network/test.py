@@ -8,11 +8,10 @@ import activation
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
 net = network.Network([784, 30, 10], 
         #cost=network2.CrossEntropyCost,
-        #cost=network2.QuadraticCost)
-        cost=activation.SoftmaxCost,
-        act=activation.TanhActivation)
-
-#net.large_weight_initializer()
+        cost=activation.QuadraticCost,
+        #cost=activation.SoftmaxCost,
+        act=activation.TanhActivation
+        )
 
 eta = 0.1  # learning rate
 batch_size = 11

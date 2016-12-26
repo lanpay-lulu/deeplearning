@@ -44,8 +44,9 @@ class Network(object):
         self.layers = [layer.Layer(w, b, act) for w, b in zip(self.weights[:-1], self.biases[:-1])]
         
         ' output can be configured by output config string '
-        #self.output_layer = layer.OutputLayer(self.weights[-1], self.biases[-1], TanhActivation, SoftmaxCost)
-        self.output_layer = layer.OutputLayer(self.weights[-1], self.biases[-1], None, SoftmaxCost)
+        cost_act = None if cost.combined() else act
+        self.output_layer = layer.OutputLayer(self.weights[-1], self.biases[-1], cost_act, cost)
+        #self.output_layer = layer.OutputLayer(self.weights[-1], self.biases[-1], None, SoftmaxCost)
         
 
     def large_weight_initializer(self):

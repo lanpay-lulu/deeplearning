@@ -39,6 +39,11 @@ class SigmoidActivation(object):
 ' Softmax activation + maximum likelihood cost. '
 class SoftmaxCost(object):
     @staticmethod
+    def combined():
+        return True
+
+
+    @staticmethod
     def fn(z):
         e = np.exp(z)
         s = np.sum(e, axis=0)
@@ -69,6 +74,10 @@ class SoftmaxCost(object):
 ' Just the Quadratic cost. '
 class QuadraticCost(object):
     @staticmethod
+    def combined():
+        return False
+
+    @staticmethod
     def cost(a, y):
         return 0.5*np.linalg.norm(a-y)**2
     
@@ -78,6 +87,10 @@ class QuadraticCost(object):
 
 
 class CrossEntropyCost(object):
+    @staticmethod
+    def combined():
+        return False
+
     @staticmethod
     def cost(a, y):
         return -np.sum(np.nan_to_num(y*np.log(a)+(1-y)*np.log(1-a)))
