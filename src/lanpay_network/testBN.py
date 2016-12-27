@@ -1,12 +1,12 @@
 import mnist_loader
 
-import network
+import BNnetwork
 import activation
 
 # add softmax to the output layer
 
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
-net = network.Network([784, 30, 10], 
+net = BNnetwork.Network([784, 30, 10], 
         cost=activation.CrossEntropyCost,
         #cost=activation.QuadraticCost,
         #cost=activation.SoftmaxCost,

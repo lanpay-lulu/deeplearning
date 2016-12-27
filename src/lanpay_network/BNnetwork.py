@@ -41,7 +41,7 @@ class Network(object):
         self.activ_fn = act
         # line zip is to generate a full connected network weights
         
-        self.layers = [layer.Layer(w, b, act) for w, b in zip(self.weights[:-1], self.biases[:-1])]
+        self.layers = [layer.BNLayer(w, b, act) for w, b in zip(self.weights[:-1], self.biases[:-1])]
         
         ' output can be configured by output config string '
         cost_act = None if cost.combined() else act
@@ -60,12 +60,16 @@ class Network(object):
         self.weights = [np.random.randn(y, x) / np.sqrt(x) / 2
                         for x, y in zip(self.sizes[:-1], self.sizes[1:])] 
 
-    def feedforward(self, a):
+    def feedforward(self, a, train):
         """Return the output of the network if ``a`` is input."""
         for lay in self.layers:
-            a = lay.forward(a)
+            a = lay.forward(a, train)
         a = self.output_layer.forward(a)
         return a
+
+    def calc_test_param(self):
+        for lay in self.layers:
+            lay.calc_test_param()
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
             lmbda = 0.0,
@@ -95,6 +99,7 @@ class Network(object):
             for mini_batch in mini_batches:
                 self.update_mini_batch(
                         mini_batch, eta, lmbda, len(training_data))
+            self.calc_test_param()
             print "Epoch %s training complete" % j
             if monitor_training_cost:
                 cost = self.total_cost(training_data, lmbda)
@@ -156,7 +161,7 @@ class Network(object):
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         
         # feed forward
-        a = self.feedforward(mx)  # 10,11 
+        a = self.feedforward(mx, train=True)  # 10,11 
 
         # backward pass
         nabla_b, nabla_w, delta = self.output_layer.backward(my)  
@@ -175,17 +180,17 @@ class Network(object):
 
     def accuracy(self, data, convert=False):
         if convert:
-            result = [(np.argmax(self.feedforward(x)), np.argmax(y))
+            result = [(np.argmax(self.feedforward(x, train=False)), np.argmax(y))
                         for (x,y) in data]
         else:
-            result = [(np.argmax(self.feedforward(x)), y)
+            result = [(np.argmax(self.feedforward(x, train=False)), y)
                         for (x,y) in data]
         return sum(int(x==y) for (x,y) in result)
 
     def total_cost(self, data, lmbda, convert=False):
         cost = 0.0
         for x,y in data:
-            a = self.feedforward(x)
+            a = self.feedforward(x, train=False)
             if convert:
                 y = vectorized_result(y)
             cost += self.cost.cost(a, y)
@@ -200,7 +205,7 @@ class Network(object):
         network outputs the correct result. Note that the neural
         network's output is assumed to be the index of whichever
         neuron in the final layer has the highest activation."""
-        test_results = [(np.argmax(self.feedforward(x)), y)
+        test_results = [(np.argmax(self.feedforward(x, train=False)), y)
                         for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
 
@@ -232,7 +237,7 @@ def test():
             #act=SigmoidActivation
             )
     x = np.array([[1,2,3], [2,3,4]]).transpose()
-    a1 = net.feedforward(x)
+    a1 = net.feedforward(x, train=True)
    
 if __name__ == '__main__':
     test()
