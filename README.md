@@ -6,6 +6,8 @@
 - 对activation函数和cost函数做了抽象，可以很方便的自定义和替换；
 - 实现了tanh的激励函数，实现了softmax+极大似然的损失函数；
 - 实现了sgd中对batch做矩阵操作；
+- 实现了batch normalization；
+
 
 folder：src/lanpay_network
 
