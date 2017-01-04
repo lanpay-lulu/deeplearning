@@ -6,7 +6,7 @@ import activation
 # add softmax to the output layer
 
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
-net = BNnetwork.Network([784, 30, 10], 
+net = BNnetwork.Network([784, 30, 30, 10], 
         cost=activation.CrossEntropyCost,
         #cost=activation.QuadraticCost,
         #cost=activation.SoftmaxCost,
@@ -15,7 +15,7 @@ net = BNnetwork.Network([784, 30, 10],
         )
 
 eta = 0.1  # learning rate
-batch_size = 11
+batch_size = 21
 epochs = 10
 net.SGD(training_data, epochs, batch_size, eta,
         lmbda = 2,

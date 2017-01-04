@@ -54,7 +54,8 @@ class Network(object):
         self.weights = [np.random.randn(y, x)
                         for x, y in zip(self.sizes[:-1], self.sizes[1:])] 
         
-    # Xavier initialization
+    # Xavier initialization ? no!
+    # MSRA initialization!
     def default_weight_initializer(self):
         self.biases = [np.random.randn(y, 1)/2 for y in self.sizes[1:]]
         self.weights = [np.random.randn(y, x) / np.sqrt(x) / 2

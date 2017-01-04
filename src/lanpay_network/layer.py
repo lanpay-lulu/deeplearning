@@ -133,20 +133,6 @@ class OutputLayer(Layer):
         Layer.__init__(self, w, b, a_fn)
         self.cost_fn = cost_fn
         print '[info] init OutputLayer...'
-
-
-'''
-Output layer includes more than a normal layer.
-Besides a normal layer, it also include a cost function.
-Becauese (cost + normal) layer has a simpler delta form, we combine them together. 
-'''
-class OutputLayer(Layer):
-    def __init__(self, w, b, act_fn, cost_fn): # if act_fn is contained in cost_fn, then act_fn should be None
-        self.combined = cost_fn.combined()
-        a_fn = act_fn if not self.combined else cost_fn
-        Layer.__init__(self, w, b, a_fn)
-        self.cost_fn = cost_fn
-        print '[info] init OutputLayer...'
         print 'act_fn = ', act_fn
         print 'cost_fn = ', cost_fn
         #self.act_fn = act_fn

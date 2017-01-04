@@ -6,7 +6,7 @@ import activation
 # add softmax to the output layer
 
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
-net = network.Network([784, 30, 10], 
+net = network.Network([784, 30, 20, 10], 
         cost=activation.CrossEntropyCost,
         #cost=activation.QuadraticCost,
         #cost=activation.SoftmaxCost,
@@ -14,8 +14,8 @@ net = network.Network([784, 30, 10],
         act=activation.SigmoidActivation
         )
 
-eta = 0.1  # learning rate
-batch_size = 11
+eta = 0.2  # learning rate
+batch_size = 21
 epochs = 10
 net.SGD(training_data, epochs, batch_size, eta,
         lmbda = 2,
